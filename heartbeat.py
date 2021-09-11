@@ -1,9 +1,14 @@
 import socket
 import time
+from telnetlib import Telnet
 
-TIME_TO_BOOT_SECONDS = 5
-TIME_TO_RECHECK_SECONDS = 10
+TIME_TO_BOOT_SECONDS = 120
+TIME_TO_RECHECK_SECONDS = 30
 MAX_COUNTER = 3
+
+host = "192.168.1.1"
+user = "admin"
+password = "admin"
 
 ADDRESS = "1.1.1.1"
 PORT    = 53
@@ -35,7 +40,17 @@ def wait_to_retry():
     time.sleep(TIME_TO_RECHECK_SECONDS)
 
 def reset_router():
-    print("Resetting router")
+    print("Connecting through telnet to router")
+    tn = Telnet(host)
+    
+    tn.read_until(b"login: ")
+    tn.write(user.encode("ascii") + b"\n")
+    tn.read_until(b"Password: ")
+    tn.write(password.encode('ascii') + b"\n")
+    print("Rebooting now")
+    tn.write(b"reboot\n")
+    tn.write(b"exit\n")
+    print(tn.read_all().decode('ascii'))
 
 def main():
     global counter
