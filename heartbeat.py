@@ -7,6 +7,7 @@ from logging.handlers import RotatingFileHandler
 # Configure logger
 log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s(%(lineno)d) %(message)s')
 log_file = "heartbeat.log"
+# Maximum of 5 MB
 rotating_handler = RotatingFileHandler(log_file, mode='a', maxBytes=5*1024*1024, backupCount=2, encoding=None, delay=0)
 rotating_handler.setFormatter(log_formatter)
 rotating_handler.setLevel(logging.INFO)
