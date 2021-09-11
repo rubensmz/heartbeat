@@ -1,6 +1,18 @@
 import socket
 import time
 from telnetlib import Telnet
+import logging
+from logging.handlers import RotatingFileHandler
+
+# Configure logger
+log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s(%(lineno)d) %(message)s')
+log_file = "heartbeat.log"
+rotating_handler = RotatingFileHandler(log_file, mode='a', maxBytes=5*1024*1024, backupCount=2, encoding=None, delay=0)
+rotating_handler.setFormatter(log_formatter)
+rotating_handler.setLevel(logging.INFO)
+log = logging.getLogger('root')
+log.setLevel(logging.INFO)
+log.addHandler(rotating_handler)
 
 TIME_TO_BOOT_SECONDS = 120
 TIME_TO_RECHECK_SECONDS = 30
@@ -18,12 +30,12 @@ counter = 0
 
 def wait_for_boot():
     global counter
-    print(f"Waiting to boot {TIME_TO_BOOT_SECONDS} seconds")
+    log.info(f"Waiting to boot {TIME_TO_BOOT_SECONDS} seconds")
     counter = 0
     time.sleep(TIME_TO_BOOT_SECONDS)
 
 def isConnected():
-    print("Checking connected")
+    log.info("Checking connected")
     try:
         # connect to the host -- tells us if the host is actually
         # reachable
@@ -36,21 +48,21 @@ def isConnected():
     return False
 
 def wait_to_retry():
-    print(f"Waiting to return {TIME_TO_RECHECK_SECONDS} seconds")
+    log.info(f"Waiting to retry in {TIME_TO_RECHECK_SECONDS} seconds")
     time.sleep(TIME_TO_RECHECK_SECONDS)
 
 def reset_router():
-    print("Connecting through telnet to router")
+    log.info("Connecting through telnet to router")
     tn = Telnet(host)
-    
+
     tn.read_until(b"login: ")
     tn.write(user.encode("ascii") + b"\n")
     tn.read_until(b"Password: ")
     tn.write(password.encode('ascii') + b"\n")
-    print("Rebooting now")
+    log.info("Rebooting now")
     tn.write(b"reboot\n")
     tn.write(b"exit\n")
-    print(tn.read_all().decode('ascii'))
+    log.info(tn.read_all().decode('ascii'))
 
 def main():
     global counter
@@ -59,16 +71,16 @@ def main():
         while counter < (MAX_COUNTER - 1):
             connected = isConnected()
 
-            print(f"Lost connection? {not connected}")
+            log.info(f"Lost connection? {not connected}")
 
             if not connected:
                 counter = counter + 1
             else:
                 counter = 0
-            print(f"Counter: {counter}")
+            log.info(f"Counter: {counter}")
             wait_to_retry()
 
-        reset_router()
+        # reset_router()
 
 
 if __name__ == "__main__":
