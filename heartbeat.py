@@ -81,7 +81,7 @@ def main():
             log.info(f"Counter: {counter}")
             wait_to_retry()
 
-        # reset_router()
+        reset_router()
 
 
 if __name__ == "__main__":
